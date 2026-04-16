@@ -16,6 +16,9 @@ class Minion:
     windfury: bool = False
     frozen: bool = False
     
+    # Buffs
+    attack_modifier: int = 0
+    
     def __post_init__(self):
         # Initialize keyword states from card
         kw = self.card.keywords
@@ -48,7 +51,7 @@ class Minion:
         
     @property
     def current_attack(self) -> int:
-        return self.card.attack
+        return max(0, self.card.attack + self.attack_modifier)
         
     def take_damage(self, amount: int):
         if amount <= 0:

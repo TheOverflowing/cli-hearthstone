@@ -4,12 +4,12 @@ A minimal, terminal-based Hearthstone engine built from the ground up to support
 
 ## Current State
 
-The game is currently fully playable up through **Phase 8** of the implementation plan, bringing support for:
+The game is currently fully playable through **Phase 8.1** of the implementation plan, bringing support for:
 - 🏰 The **Mulligan phase** (pre-game redraws)
 - 🪚 **Weapons** & Hero direct attacks
 - ❓ **Secrets** mapped through an EventBus `PRE_RESOLUTION` phase
-- 📝 Human CLI commands and rich text layout
-- 🃏 Built-in Custom Deck Manager handling JSON deck states.
+- 🃏 **Data Import Core**: Loads authentic Hearthstone cards from `cards.json`
+- 🛠️ **CLI Utilities**: Dedicated terminal commands for examining cards, searching effects, and validating deck metadata.
 
 ---
 ![alt text](image.png)
@@ -53,8 +53,26 @@ play 0 0
 end
 ```
 
-## Creating Decks & Agents
+## Cards & Decks CLI
 
 To test or construct explicit datasets, deck configuration arrays can be serialized as JSON configurations (`["card_id1", "card_id2", ...]`) and validated/stored using the Deck Manager interface. 
+
+### Managing Cards
+Use the `hsrl.cli.cards` tool to explore imported sets:
+```bash
+PYTHONPATH=src python3 -m hsrl.cli.cards search fire
+PYTHONPATH=src python3 -m hsrl.cli.cards show blizzard
+PYTHONPATH=src python3 -m hsrl.cli.cards list --needs-effect
+PYTHONPATH=src python3 -m hsrl.cli.cards list --implemented
+```
+
+### Managing Decks
+Use the `hsrl.cli.deck_manager` tool to test rule compliance and view Mana Curves:
+```bash
+PYTHONPATH=src python3 -m hsrl.cli.deck_manager validate decks/test.json
+PYTHONPATH=src python3 -m hsrl.cli.deck_manager stats decks/test.json
+```
+
+## AI & Agents
 
 AI baselines operate via `hsrl.agents.*`, plugging interchangeably directly into `game.py`. Run `python3 -m hsrl.cli.play --p1 random --p2 random` to watch a sandbox instance play itself instantly.
