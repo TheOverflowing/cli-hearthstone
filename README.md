@@ -1,0 +1,60 @@
+# CLI Hearthstone (RL Simulator) 🐉🗡️
+
+A minimal, terminal-based Hearthstone engine built from the ground up to support Reinforcement Learning (RL) research. The engine provides clean hooks into environment states, observation bounds, and handles all classic combat processing, spell casting, event buses (secrets, deathrattles), and the mulligan phase.
+
+## Current State
+
+The game is currently fully playable up through **Phase 8** of the implementation plan, bringing support for:
+- 🏰 The **Mulligan phase** (pre-game redraws)
+- 🪚 **Weapons** & Hero direct attacks
+- ❓ **Secrets** mapped through an EventBus `PRE_RESOLUTION` phase
+- 📝 Human CLI commands and rich text layout
+- 🃏 Built-in Custom Deck Manager handling JSON deck states.
+
+---
+![alt text](image.png)
+
+## How to Play (Human Agent)
+
+Ensure you configure your environment variables first so your Python instance points to the `src` directory containing the modules. 
+
+```bash
+export PYTHONPATH=src
+python3 -m hsrl.cli.play --p1 human --p2 random
+```
+*Note: Depending on your python alias and dependencies, you must have `rich` installed via pip.*
+
+### Match Start (Mulligan)
+
+On Boot, the `MULLIGAN` phase is immediately triggered. The console will prompt you to toss away cards in your starting hand. 
+* To throw away the first and second card: Type `mulligan 0 1`
+* To keep all cards (no redraw): Type `mulligan`
+
+### In-Game Commands
+
+When your Main Phase starts, use these interactive shell commands to maneuver on the board:
+
+| Command Structure | Description |
+|---|---|
+| `play <hand_index> <board_position>` | Play a standard minion card from your hand into the board position of your choice. Positions are 0-indexed. Example: `play 2 0` |
+| `play_spell <hand_index>` | Play a spell to deal damage, heal, etc. |
+| `play_weapon <hand_index>` | Equip a hero weapon. |
+| `play_secret <hand_index>` | Set an active secret. |
+| `hero_power` | Spend 2 mana to use your Class Hero Power. |
+| `attack <attacker_index> <target_index>` | Command a minion to attack. `attacker_index` aligns to your board array (0..N). `target_index` aligns to opponent's board (0..N). Target `-1` attacks the enemy **Hero!** |
+| `attack -1 <target_index>` | Direct your **Hero** to attack based on equipped weapon statistics. |
+| `end` | Conclude your current turn. |
+
+**Example Turn:**
+```text
+play_weapon 1
+attack -1 -1
+play 0 0
+end
+```
+
+## Creating Decks & Agents
+
+To test or construct explicit datasets, deck configuration arrays can be serialized as JSON configurations (`["card_id1", "card_id2", ...]`) and validated/stored using the Deck Manager interface. 
+
+AI baselines operate via `hsrl.agents.*`, plugging interchangeably directly into `game.py`. Run `python3 -m hsrl.cli.play --p1 random --p2 random` to watch a sandbox instance play itself instantly.
