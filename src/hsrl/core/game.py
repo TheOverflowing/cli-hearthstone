@@ -114,11 +114,15 @@ class GameState:
                             actions.append(PlayWeapon(p_id, i))
 
             # Hero Power
-            if not player.hero_power_used_this_turn and player.mana_crystals >= 2:
-                if player.hero_class == HeroClass.MAGE:
+            hp_cost = 1 if player.hero_class == HeroClass.DEMON_HUNTER else 2
+            if not player.hero_power_used_this_turn and player.mana_crystals >= hp_cost:
+                if player.hero_class in (HeroClass.MAGE, HeroClass.PRIEST):
                     for target_pid, target_idx in self._get_all_targets():
                         actions.append(UseHeroPower(p_id, target_pid, target_idx))
-                elif player.hero_class == HeroClass.WARRIOR:
+                elif player.hero_class in (HeroClass.PALADIN, HeroClass.SHAMAN, HeroClass.DEATH_KNIGHT):
+                    if len(player.board) < 7:
+                        actions.append(UseHeroPower(p_id))
+                elif player.hero_class in (HeroClass.WARRIOR, HeroClass.HUNTER, HeroClass.WARLOCK, HeroClass.DRUID, HeroClass.ROGUE, HeroClass.DEMON_HUNTER):
                     actions.append(UseHeroPower(p_id))
             
             # Attack
@@ -246,7 +250,8 @@ class GameState:
             self._resolve_deaths()
             
         elif isinstance(action, UseHeroPower):
-            player.mana_crystals -= 2
+            hp_cost = 1 if player.hero_class == HeroClass.DEMON_HUNTER else 2
+            player.mana_crystals -= hp_cost
             player.hero_power_used_this_turn = True
             
             if player.hero_class == HeroClass.MAGE:
@@ -256,8 +261,45 @@ class GameState:
                 else:
                     target = self.players[action.target_player_id].board[action.target_index]
                     target.take_damage(1)
+            elif player.hero_class == HeroClass.PRIEST:
+                if action.target_index == -1:
+                    target = self.players[action.target_player_id]
+                    target.restore_health(2)
+                else:
+                    target = self.players[action.target_player_id].board[action.target_index]
+                    target.restore_health(2)
             elif player.hero_class == HeroClass.WARRIOR:
                 player.armor += 2
+            elif player.hero_class == HeroClass.HUNTER:
+                opp.take_damage(2)
+            elif player.hero_class == HeroClass.PALADIN:
+                from .card import Card
+                token = Card(id="CS2_101t", name="Silver Hand Recruit", cost=1, attack=1, health=1, type=CardType.MINION, hero_class=HeroClass.PALADIN)
+                player.board.append(Minion(card=token))
+            elif player.hero_class == HeroClass.SHAMAN:
+                from .card import Card
+                token = Card(id="CS2_050", name="Searing Totem", cost=1, attack=1, health=1, type=CardType.MINION, hero_class=HeroClass.SHAMAN)
+                player.board.append(Minion(card=token))
+            elif player.hero_class == HeroClass.WARLOCK:
+                player.take_damage(2)
+                player.draw_card()
+            elif player.hero_class == HeroClass.DRUID:
+                player.attack_this_turn += 1
+                player.armor += 1
+            elif player.hero_class == HeroClass.ROGUE:
+                from .card import Card
+                from .weapon import Weapon
+                weapon_card = Card(id="CS2_083b", name="Wicked Knife", cost=1, type=CardType.WEAPON, hero_class=HeroClass.ROGUE, weapon_stats=(1, 2))
+                player.weapon = Weapon(card=weapon_card, attack=1, durability=2)
+            elif player.hero_class == HeroClass.DEMON_HUNTER:
+                player.attack_this_turn += 1
+            elif player.hero_class == HeroClass.DEATH_KNIGHT:
+                from .card import Card
+                from .enums import Keyword
+                token = Card(id="RLK_015t", name="Ghoul", cost=1, attack=1, health=1, type=CardType.MINION, hero_class=HeroClass.DEATH_KNIGHT, keywords=[Keyword.CHARGE])
+                ghoul = Minion(card=token)
+                ghoul.dies_at_end_of_turn = True
+                player.board.append(ghoul)
                 
             self._resolve_deaths()
         else:
@@ -298,6 +340,13 @@ class GameState:
         # Unfreeze characters at end of their turn
         player = self.get_current_player()
         player.frozen = False
+        
+        # Kill minions that die at end of turn
+        for m in player.board:
+            if m.dies_at_end_of_turn:
+                m.take_damage(9999)
+        self._resolve_deaths()
+        
         for m in player.board:
             m.frozen = False
             

@@ -18,6 +18,7 @@ class Minion:
     
     # Buffs
     attack_modifier: int = 0
+    dies_at_end_of_turn: bool = False
     
     def __post_init__(self):
         # Initialize keyword states from card

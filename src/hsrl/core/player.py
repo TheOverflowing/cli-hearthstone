@@ -10,6 +10,7 @@ class Player:
     id: PlayerId
     hero_class: HeroClass = HeroClass.MAGE
     health: int = 30
+    max_health: int = 30
     armor: int = 0
     mana_crystals: int = 0
     max_mana: int = 0
@@ -48,6 +49,10 @@ class Player:
             remaining = amount - self.armor
             self.armor = 0
             self.health -= remaining
+
+    def restore_health(self, amount: int):
+        if amount <= 0: return
+        self.health = min(self.max_health, self.health + amount)
         
     def draw_card(self) -> Optional[Card]:
         if not self.deck:

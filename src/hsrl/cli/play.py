@@ -18,7 +18,9 @@ def main():
     args = parser.parse_args()
 
     # Init database
+    from hsrl.cards.registry import load_database
     init_basic_set()
+    load_database()
     
     # Setup agents
     agents = {}
@@ -38,8 +40,11 @@ def main():
     def setup_deck(p_id, deck_path):
         if deck_path:
             try:
-                card_ids = load_deck(deck_path)
-                for c_id in card_ids:
+                deck_data = load_deck(deck_path)
+                from hsrl.core.enums import HeroClass
+                game.players[p_id].hero_class = HeroClass[deck_data['hero_class']]
+                
+                for c_id in deck_data['cards']:
                     game.players[p_id].deck.append(get_card(c_id))
             except Exception as e:
                 print(f"Error loading deck for {p_id}: {e}")
@@ -57,9 +62,14 @@ def main():
     while not game.is_terminal():
         current_p = game.current_player_id
         
-        # We render from the perspective of the current player,
-        # unless it's a random AI vs random AI, then just render from P1
-        viewer = current_p if args.p1 == "human" or args.p2 == "human" else PlayerId.P1
+        if args.p1 == "human" and args.p2 == "human":
+            viewer = current_p
+        elif args.p1 == "human":
+            viewer = PlayerId.P1
+        elif args.p2 == "human":
+            viewer = PlayerId.P2
+        else:
+            viewer = PlayerId.P1
         
         # In a real game, only render if it's human's turn, or render briefly
         # Let's render always to observe

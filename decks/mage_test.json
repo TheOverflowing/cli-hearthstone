@@ -1,0 +1,20 @@
+{
+  "hero_class": "MAGE",
+  "cards": [
+    "bob_the_bartender", "bob_the_bartender",
+    "fen_creeper", "fen_creeper",
+    "inner_fire", "inner_fire",
+    "blizzard", "blizzard",
+    "ice_lance", "ice_lance",
+    "ancestral_spirit", "ancestral_spirit",
+    "far_sight", "far_sight",
+    "blood_imp", "blood_imp",
+    "cold_blood", "cold_blood",
+    "rampage", "rampage",
+    "earthen_ring_farseer", "earthen_ring_farseer",
+    "southsea_deckhand", "southsea_deckhand",
+    "silver_hand_knight", "silver_hand_knight",
+    "squire", "squire",
+    "ravenholdt_assassin", "ravenholdt_assassin"
+  ]
+}

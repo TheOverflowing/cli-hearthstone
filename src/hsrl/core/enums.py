@@ -40,3 +40,5 @@ class HeroClass(Enum):
     DRUID = auto()
     SHAMAN = auto()
     ROGUE = auto()
+    DEMON_HUNTER = auto()
+    DEATH_KNIGHT = auto()

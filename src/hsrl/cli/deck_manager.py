@@ -7,24 +7,32 @@ from hsrl.core.enums import HeroClass, CardType
 
 DECK_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "decks")
 
-def validate_deck(deck: List[str]) -> bool:
-    """Validates the flat array format of a deck."""
-    if len(deck) != 30:
-        print(f"Deck has {len(deck)} cards, expected 30.")
+def validate_deck(deck: dict) -> bool:
+    """Validates the structure and content of a deck dictionary."""
+    if "hero_class" not in deck or "cards" not in deck:
+        print("Deck dictionary must contain 'hero_class' and 'cards'.")
+        return False
+        
+    try:
+        hero_class = HeroClass[deck["hero_class"]]
+    except KeyError:
+        print(f"Invalid hero class: {deck['hero_class']}")
+        return False
+        
+    cards = deck["cards"]
+    if len(cards) != 30:
+        print(f"Deck has {len(cards)} cards, expected 30.")
         return False
     
     counts = {}
     valid = True
     
-    # We should also check for class consistency. 
-    # A deck must are all neutral or of exactly 1 class.
-    classes_found = set()
-    
-    for card_id in deck:
+    for card_id in cards:
         try:
             card = get_card(card_id)
-            if card.hero_class != HeroClass.NEUTRAL:
-                classes_found.add(card.hero_class)
+            if card.hero_class not in (HeroClass.NEUTRAL, hero_class):
+                print(f"Card '{card.name}' ({card.hero_class.name}) is not allowed in a {hero_class.name} deck.")
+                valid = False
         except KeyError:
             print(f"Card '{card_id}' not found in registry.")
             valid = False
@@ -35,29 +43,27 @@ def validate_deck(deck: List[str]) -> bool:
             print(f"More than 2 copies of '{card_id}' found.")
             valid = False
 
-    if len(classes_found) > 1:
-        print(f"Deck contains cards from multiple classes: {[c.name for c in classes_found]}")
-        valid = False
-        
     return valid
 
-def load_deck(filepath: str) -> List[str]:
+def load_deck(filepath: str) -> dict:
     with open(filepath, 'r') as f:
         deck = json.load(f)
-    if not isinstance(deck, list):
-        raise ValueError("Deck must be a list of card IDs")
+    if isinstance(deck, list):
+        raise ValueError("Deck must be a dictionary with 'hero_class' and 'cards', not a flat list. Please update legacy decks.")
+    if not isinstance(deck, dict):
+        raise ValueError("Deck must be a JSON object")
     return deck
 
-def save_deck(deck: List[str], name: str):
+def save_deck(deck: dict, name: str):
     os.makedirs(DECK_DIR, exist_ok=True)
     with open(os.path.join(DECK_DIR, f"{name}.json"), 'w') as f:
         json.dump(deck, f, indent=2)
 
-def deck_stats(deck: List[str]):
+def deck_stats(deck: dict):
     costs = {i: 0 for i in range(8)} # 0-7+
     types = {"MINION": 0, "SPELL": 0, "WEAPON": 0}
     
-    for card_id in deck:
+    for card_id in deck.get("cards", []):
         try:
             c = get_card(card_id)
             cost_bucket = min(7, c.cost)
@@ -66,7 +72,7 @@ def deck_stats(deck: List[str]):
         except KeyError:
             pass
 
-    print("=== Deck Stats ===")
+    print(f"=== Deck Stats ({deck.get('hero_class', 'Unknown')}) ===")
     print("Mana Curve:")
     for i in range(8):
         label = f"{i}+" if i == 7 else str(i)

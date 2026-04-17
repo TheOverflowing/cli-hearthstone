@@ -5,6 +5,7 @@ A minimal, terminal-based Hearthstone engine built from the ground up to support
 ## Current State
 
 The game is currently fully playable through **Phase 8.1** of the implementation plan, bringing support for:
+- 🦸 **11 Hero Classes**: Full support for all 11 Hearthstone classes and their respective Hero Powers, including Demon Hunter and Death Knight!
 - 🏰 The **Mulligan phase** (pre-game redraws)
 - 🪚 **Weapons** & Hero direct attacks
 - ❓ **Secrets** mapped through an EventBus `PRE_RESOLUTION` phase
@@ -20,7 +21,7 @@ Ensure you configure your environment variables first so your Python instance po
 
 ```bash
 export PYTHONPATH=src
-python3 -m hsrl.cli.play --p1 human --p2 random
+python3 -m hsrl.cli.play --p1 human --p2 random --deck1 decks/mage_test.json
 ```
 *Note: Depending on your python alias and dependencies, you must have `rich` installed via pip.*
 
@@ -36,14 +37,16 @@ When your Main Phase starts, use these interactive shell commands to maneuver on
 
 | Command Structure | Description |
 |---|---|
-| `play <hand_index> <board_position>` | Play a standard minion card from your hand into the board position of your choice. Positions are 0-indexed. Example: `play 2 0` |
-| `play_spell <hand_index>` | Play a spell to deal damage, heal, etc. |
+| `play <hand_index> <board_position> [target_p] [target_idx]` | Play a standard minion card from your hand into the board position of your choice. Positions are 0-indexed. Example: `play 2 0` |
+| `play_spell <hand_index> [target_p] [target_idx]` | Play a spell to deal damage, heal, etc. |
 | `play_weapon <hand_index>` | Equip a hero weapon. |
 | `play_secret <hand_index>` | Set an active secret. |
-| `hero_power` | Spend 2 mana to use your Class Hero Power. |
+| `hero_power [target_p] [target_idx]` | Spend 2 mana to use your Class Hero Power. |
 | `attack <attacker_index> <target_index>` | Command a minion to attack. `attacker_index` aligns to your board array (0..N). `target_index` aligns to opponent's board (0..N). Target `-1` attacks the enemy **Hero!** |
 | `attack -1 <target_index>` | Direct your **Hero** to attack based on equipped weapon statistics. |
 | `end` | Conclude your current turn. |
+
+> **Targeting:** For spells, battlecries, or hero powers that require a target, supply `[target_p]` (1 for P1, 2 for P2) and `[target_idx]` (0..N for board minions, -1 for the hero) at the end of the command. For example, `play_spell 1 2 0` targets P2's first minion.
 
 **Example Turn:**
 ```text
@@ -55,7 +58,13 @@ end
 
 ## Cards & Decks CLI
 
-To test or construct explicit datasets, deck configuration arrays can be serialized as JSON configurations (`["card_id1", "card_id2", ...]`) and validated/stored using the Deck Manager interface. 
+To test or construct explicit datasets, deck configurations can be serialized as JSON configurations and validated/stored using the Deck Manager interface. Decks must follow a strict dictionary schema defining the `hero_class` to ensure classes constraints and auto-assign the hero power:
+```json
+{
+  "hero_class": "MAGE",
+  "cards": ["CS2_022", "CS2_022"]
+}
+``` 
 
 ### Managing Cards
 Use the `hsrl.cli.cards` tool to explore imported sets:

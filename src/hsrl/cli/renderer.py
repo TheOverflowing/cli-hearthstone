@@ -4,7 +4,7 @@ from rich.text import Text
 from rich.table import Table
 from rich import box
 from hsrl.core.game import GameState
-from hsrl.core.enums import PlayerId, Phase
+from hsrl.core.enums import PlayerId, Phase, CardType
 from hsrl.core.minion import Minion
 
 class Renderer:
@@ -48,7 +48,12 @@ class Renderer:
         # My hand
         hand_text = ""
         for i, card in enumerate(my_p.hand):
-            hand_text += f"[{i}] {card.name} (Cost: {card.cost}, {card.attack}/{card.health}) - {card.description}\n"
+            stats = ""
+            if card.type == CardType.MINION:
+                stats = f", {card.attack}/{card.health}"
+            elif card.type == CardType.WEAPON:
+                stats = f", {card.weapon_stats[0]}/{card.weapon_stats[1]}"
+            hand_text += f"[{i}] {card.name} [{card.type.name}] (Cost: {card.cost}{stats}) - {card.description}\n"
         self.console.print(Panel(hand_text.strip(), title="My Hand", border_style="green"))
 
         # My hero section
