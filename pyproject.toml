@@ -19,3 +19,6 @@ dependencies = [
 dev = [
     "pytest",
 ]
+
+[project.scripts]
+hs-play = "hsrl.cli.play:main"

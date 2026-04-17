@@ -17,13 +17,32 @@ The game is currently fully playable through **Phase 8.1** of the implementation
 
 ## How to Play (Human Agent)
 
-Ensure you configure your environment variables first so your Python instance points to the `src` directory containing the modules. 
+Plan A: Ensure you configure your environment variables first so your Python instance points to the `src` directory containing the modules. 
 
 ```bash
 export PYTHONPATH=src
 python3 -m hsrl.cli.play --p1 human --p2 random --deck1 decks/mage_test.json
 ```
 *Note: Depending on your python alias and dependencies, you must have `rich` installed via pip.*
+
+Plan B: The easiest way to install and play the game is by installing it as a local python package. This will install all dependencies and expose a handy system-wide command.
+
+1. Ensure your Python virtual environment is active (if you use one).
+2. Install the game in editable mode:
+```bash
+pip install -e .
+```
+3. You can now launch the game from anywhere using the `hs-play` command:
+```bash
+hs-play --p1 human --p2 random --deck1 decks/mage_test.json
+```
+
+Alternatively, if you'd rather not install it, you can simply use the included wrapper script:
+```bash
+./play.sh --p1 human --p2 random --deck1 decks/mage_test.json
+```
+
+*Note: The manual invocation (`export PYTHONPATH=src` followed by `python3 -m hsrl.cli.play ...`) is also fully supported!*
 
 ### Match Start (Mulligan)
 
@@ -84,4 +103,4 @@ PYTHONPATH=src python3 -m hsrl.cli.deck_manager stats decks/test.json
 
 ## AI & Agents
 
-AI baselines operate via `hsrl.agents.*`, plugging interchangeably directly into `game.py`. Run `python3 -m hsrl.cli.play --p1 random --p2 random` to watch a sandbox instance play itself instantly.
+AI baselines operate via `hsrl.agents.*`, plugging interchangeably directly into `game.py`. Run `hs-play --p1 random --p2 random` to watch a sandbox instance play itself instantly.
